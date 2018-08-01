@@ -2,6 +2,7 @@
 - Build project :
     make
 - Flash image :
+    sudo apt-get install expect 
     ./do_flash.sh
 - Clean project :
     ./clean_build.sh
