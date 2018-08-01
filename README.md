@@ -6,6 +6,7 @@
 - Flash image :
 
     sudo apt-get install expect 
+    
     ./do_flash.sh
 
 - Clean project :
