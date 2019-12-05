@@ -1,0 +1,75 @@
+# Prerequisites
+*.d
+*.uvgui.*
+JLinkSettings.ini
+
+# Object files
+iap/output/
+*.o
+*.ko
+*.obj
+*.elf
+*.crf
+*.dep
+*.htm
+*.lnp
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+#*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+#*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+.vscode/ipch/
+
+# Keil Project
+iap/project/
+
+# Source insight
+iap/si/
+Sourceinsight
+
+# Jlink
+Project/JLink.exe
+Project/JLinkRTTClient.exe
+Project/JLinkCommandFile.jlink
+Project/jlink.py
+Project/jlink.bat
+
+# Log
+#Log/Log.md
