@@ -9,11 +9,19 @@
 
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
+#include "sys.h"
 
 /* Definitions of physical drive number for each drive */
-#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
-#define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
+//#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
+//#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
+//#define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
+#define EX_FLASH 0    /*physical drive number */
+#define FLASH_SECTOR_SIZE 4096
+#define FLASH_BLOCK_SIZE   16
+u32     FLASH_SECTOR_COUNT = 4096 ; /* W25Q128(16*1024*1024/4096) */
+
+#define DEVICE_ID 0x17 /* W25Q128 :0xef17 */
+
 
 
 /*-----------------------------------------------------------------------*/
@@ -28,27 +36,20 @@ DSTATUS disk_status (
 	int result;
 
 	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-	}
+     
+    case EX_FLASH :
+        stat = (BYTE)(W25QXX_ReadID());
+    
+        if(stat == DEVICE_ID)
+        {
+            /*Initial success*/
+            return 0;
+        }
+        else
+        {
+            return STA_NOINIT;
+        }
+    }
 	return STA_NOINIT;
 }
 
@@ -64,28 +65,21 @@ DSTATUS disk_initialize (
 {
 	DSTATUS stat;
 	int result;
-
+    int i;
+    
 	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
+        
+    case EX_FLASH :
+        
+        W25QXX_Init();
+    
+        i = 500;
+        while(i--);
+        
+        W25QXX_WAKEUP();
+        stat = disk_status(EX_FLASH);
+        
+        return stat;
 	}
 	return STA_NOINIT;
 }
@@ -106,36 +100,23 @@ DRESULT disk_read (
 	DRESULT res;
 	int result;
 
+    if (!count)return RES_PARERR;
+
 	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
+    case EX_FLASH :
+        
+        for(;count>0;count--)
+        {
+            W25QXX_Read(buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+            sector++;
+            buff+=FLASH_SECTOR_SIZE;
+        }
 
-		result = RAM_disk_read(buff, sector, count);
+        return RES_OK;
+    default:
+        return RES_ERROR;
+    }
 
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
 }
 
 
@@ -156,36 +137,21 @@ DRESULT disk_write (
 	DRESULT res;
 	int result;
 
+    if (!count)return RES_PARERR;
+    
 	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
-
-		result = RAM_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+    case EX_FLASH :
+           
+            for(;count>0;count--)
+            {  
+                W25QXX_Write((u8*)buff,sector*FLASH_SECTOR_SIZE,FLASH_SECTOR_SIZE);
+                sector++;
+                buff+=FLASH_SECTOR_SIZE;
+            }
+            return RES_OK;
+    default:
+            return RES_ERROR;
+    }
 }
 
 #endif
@@ -204,26 +170,45 @@ DRESULT disk_ioctl (
 	DRESULT res;
 	int result;
 
-	switch (pdrv) {
-	case DEV_RAM :
+    if(pdrv == EX_FLASH)
+    {
+        switch(cmd)
+        {
+            case CTRL_SYNC:
+                res = RES_OK;
+                break;	 
+            case GET_SECTOR_SIZE:
+                *(WORD*)buff = FLASH_SECTOR_SIZE;
+                res = RES_OK;
+                break;
+            case GET_BLOCK_SIZE:
+                *(WORD*)buff = FLASH_BLOCK_SIZE;
+                res = RES_OK;
+                break;
+            case GET_SECTOR_COUNT:
+                *(DWORD*)buff = FLASH_SECTOR_COUNT;
+                res = RES_OK;
+                break;
+            default:
+                res = RES_PARERR;
+                break;
+        }
+    }else
+    {
+        res=RES_ERROR;
+    }
 
-		// Process of the command for the RAM drive
-
-		return res;
-
-	case DEV_MMC :
-
-		// Process of the command for the MMC/SD card
-
-		return res;
-
-	case DEV_USB :
-
-		// Process of the command the USB drive
-
-		return res;
-	}
-
-	return RES_PARERR;
+	return res;
 }
+
+/* 
+    User defined function to give a current time to fatfs module
+    31-25: Year(0-127 org.1980), 24-21: Month(1-12), 20-16: Day(1-31) 
+    15-11: Hour(0-23), 10-5: Minute(0-59), 4-0: Second(0-29 *2)
+*/
+DWORD get_fattime (void)
+{
+    return 0;
+}
+
 

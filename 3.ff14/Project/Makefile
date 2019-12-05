@@ -7,6 +7,7 @@ DIR_DRIVERS   += ../Drivers/spi/
 DIR_MODULES   += ../Modules/led/
 DIR_MODULES   += ../Modules/segger/
 DIR_MODULES   += ../Modules/w25qxx/
+DIR_MODULES   += ../Modules/ff14/source/
 
 DIR_ALGORITHM += ../Algorithm/
 

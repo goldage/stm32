@@ -38,7 +38,7 @@
 /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
 
 
-#define FF_USE_MKFS		0
+#define FF_USE_MKFS		1
 /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
 
 
@@ -68,7 +68,8 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define FF_CODE_PAGE	932
+//#define FF_CODE_PAGE	936 //Take up too many flash resources. 
+#define FF_CODE_PAGE	437
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect code page setting can cause a file open failure.
 /
@@ -90,14 +91,14 @@
 /   866 - Russian
 /   869 - Greek 2
 /   932 - Japanese (DBCS)
-/   936 - Simplified Chinese (DBCS)
+/   936 - Simplified Chinese (DBCS) 
 /   949 - Korean (DBCS)
 /   950 - Traditional Chinese (DBCS)
 /     0 - Include all code pages above and configured by f_setcp()
 */
 
 
-#define FF_USE_LFN		0
+#define FF_USE_LFN		2
 #define FF_MAX_LFN		255
 /* The FF_USE_LFN switches the support for LFN (long file name).
 /
@@ -190,8 +191,8 @@
 /  funciton will be available. */
 
 
-#define FF_MIN_SS		512
-#define FF_MAX_SS		512
+#define FF_MIN_SS		4096
+#define FF_MAX_SS		4096
 /* This set of options configures the range of sector size to be supported. (512,
 /  1024, 2048 or 4096) Always set both 512 for most systems, generic memory card and
 /  harddisk. But a larger value may be required for on-board flash memory and some

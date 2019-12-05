@@ -3,6 +3,9 @@
 
 #include "sys.h"
 
+/* 函数名宏定义 */
+#define delay_us Delay_us 
+
 //W25X系列/Q系列芯片列表
 //W25Q80  ID  0XEF13
 //W25Q16  ID  0XEF14
