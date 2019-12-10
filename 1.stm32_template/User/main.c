@@ -12,7 +12,7 @@ static void prvSetupHardware(void)
     /* LED Configuration */
     LED_Configuration();
     /* Systick Configuration */
-    SysTick_Init();
+    Delay_init();
     /* Segger Configuration */
     SEGGER_RTT_Init();
 

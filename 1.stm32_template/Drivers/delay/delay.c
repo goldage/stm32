@@ -1,80 +1,50 @@
 #include "delay.h"
 
-u32 TimingDelay;
+static u8  fac_us = 0;         //us定时因子
+static u16 fac_ms = 0;        //ms定时因子
 
-/*******************************************************************************
-* Function    : SysTick_ITConfig.
-* Description : Laurence add for enable or disable systick clk irq.
-* Arguments   : NewState: ENABLE / DISABLE
-* Return      : None
-*******************************************************************************/
-void SysTick_ITConfig(FunctionalState NewState)
+//初始化延迟函数
+//当使用OS的时候,此函数会初始化OS的时钟节拍
+//SYSTICK的时钟固定为HCLK时钟的1/8
+//SYSCLK:系统时钟
+void Delay_init(void)
 {
-    if (NewState != DISABLE)
-    {
-        SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
-    }
-    else
-    {
-        SysTick->CTRL &= (~SysTick_CTRL_ENABLE_Msk);
-    }
+	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);	//选择外部时钟  HCLK/8
+	fac_us=SystemCoreClock/8000000;				//为系统时钟的1/8
+	fac_ms=(u16)fac_us*1000;					//代表每个ms需要的systick时钟数
 }
 
-/*******************************************************************************
-* Function    : SysTick_Init.
-* Description : 启动系统滴答定时器 SysTick.
-                SystemFrequency / 1000    1ms中断一次
-                SystemFrequency / 100000  10us中断一次
-                SystemFrequency / 1000000 1us中断一次
-* Arguments   : None
-* Return      : None
-*******************************************************************************/
-void SysTick_Init(void)
+//延时nus
+//nus为要延时的us数.
+void Delay_us(u32 nus)
 {
-    RCC_ClocksTypeDef RCC_Clocks;
-
-    /* SysTick end of count event each 1ms */
-    RCC_GetClocksFreq(&RCC_Clocks);
-
-    SysTick_Config(RCC_Clocks.HCLK_Frequency  / 100000);// 配置定时器进入中断的时间
-
-    SysTick_ITConfig(ENABLE);
+	u32 temp;
+	SysTick->LOAD=nus*fac_us; 					//时间加载
+	SysTick->VAL=0x00;        					//清空计数器
+	SysTick->CTRL|=SysTick_CTRL_ENABLE_Msk ;	//开始倒数
+	do
+	{
+		temp=SysTick->CTRL;
+	}while((temp&0x01)&&!(temp&(1<<16)));		//等待时间到达
+	SysTick->CTRL&=~SysTick_CTRL_ENABLE_Msk;	//关闭计数器
+	SysTick->VAL =0X00;      					 //清空计数器
 }
-
-/*******************************************************************************
-* Function    : Delay_us.
-* Description : us延时程序,10us为一个单位.
-* Arguments   : nTime: Delay_us( 1 ) 则实现的延时为 1 * 10us = 10us
-* Return      : None
-*******************************************************************************/
-void Delay_us(__IO u32 nTime)
+//延时nms
+//注意nms的范围
+//SysTick->LOAD为24位寄存器,所以,最大延时为:
+//nms<=0xffffff*8*1000/SYSCLK
+//SYSCLK单位为Hz,nms单位为ms
+//对72M条件下,nms<=1864
+void Delay_ms(u16 nms)
 {
-    TimingDelay = nTime; // 配置t
-
-    while (TimingDelay != 0);
-}
-
-void Delay_ms(__IO u32 nTime)
-{
-    Delay_us(nTime * 100); // 100 * 10 us = 1ms
-}
-
-/*******************************************************************************
-* Function    : TimingDelay_Decrement.
-* Description : 获取节拍程序.
-                在 SysTick 中断函数 SysTick_Handler()调用
-* Arguments   : None
-* Return      : None
-*******************************************************************************/
-void TimingDelay_Decrement(void)
-{
-    if (TimingDelay != 0x00)
-    {
-        TimingDelay--;
-    }
-}
-
-void SysTick_Handler(void)
-{
-    TimingDelay_Decrement();
+	u32 temp;
+	SysTick->LOAD=(u32)nms*fac_ms;				//时间加载(SysTick->LOAD为24bit)
+	SysTick->VAL =0x00;							//清空计数器
+	SysTick->CTRL|=SysTick_CTRL_ENABLE_Msk ;	//开始倒数
+	do
+	{
+		temp=SysTick->CTRL;
+	}while((temp&0x01)&&!(temp&(1<<16)));		//等待时间到达
+	SysTick->CTRL&=~SysTick_CTRL_ENABLE_Msk;	//关闭计数器
+	SysTick->VAL =0X00;       					//清空计数器
 }

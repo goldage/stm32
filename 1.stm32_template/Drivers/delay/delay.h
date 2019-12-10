@@ -3,9 +3,11 @@
 
 #include "stm32f10x.h"
 #include "misc.h"
+#include "sys.h"
 
-void SysTick_Init(void);
-void Delay_ms(__IO u32 nTime);
-void Delay_us(__IO u32 nTime);
+void Delay_init(void);
+void Delay_ms(u16 nms);
+void Delay_us(u32 nus);
+
 
 #endif
